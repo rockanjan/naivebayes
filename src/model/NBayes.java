@@ -24,7 +24,10 @@ public class NBayes {
 	double[] piExpectedCounts;
 	double[][] emissionExpectedCounts;
 	
-	public NBayes(Corpus c, int K, int V) {
+	boolean isLabeled;
+	
+	public NBayes(Corpus c, int K, int V, boolean isLabeled) {
+		this.isLabeled = isLabeled;
 		this.c = c;
 		this.K = K;
 		this.V = V;
@@ -260,7 +263,7 @@ public class NBayes {
 	public void decode(String outFile) throws FileNotFoundException {
 		PrintWriter pw = new PrintWriter(outFile);
 		int correct = 0;
-		if(c.labelMap.size() > 1) {
+		if(isLabeled) {
 			System.out.println("Instance \t Actual \t Predicted \t error \tprobability");
 		}
 		for(int n=0; n<N; n++) {
@@ -281,7 +284,7 @@ public class NBayes {
 					maxActualProb = actualProb;
 				}
 			}
-			if(c.labelMap.size() > 1) {
+			if(isLabeled) {
 				String label = c.labelIdToString.get(maxCluster);
 				pw.println(label);
 				int actualCluster = c.instanceList.get(n).label;
@@ -299,7 +302,7 @@ public class NBayes {
 			}
 			pw.flush();
 		}
-		if(c.labelMap.size() > 1) {
+		if(isLabeled) {
 			System.out.println("Correct = " + correct + " Total = " + N + " Accuracy = " + (100.0 * correct/N));
 		}
 		pw.close();
