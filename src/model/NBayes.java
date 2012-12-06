@@ -105,7 +105,7 @@ public class NBayes {
 		//normalize
 		for(int k=0; k<pi.length; k++) {
 			pi[k] = Math.log(pi[k] / sum);
-			System.out.println("pi " + Math.exp(pi[k]));
+			//System.out.println("pi " + Math.exp(pi[k]));
 		}
 		
 		for(int k=0; k<K; k++) {
@@ -117,7 +117,7 @@ public class NBayes {
 			//normalize
 			for(int v=0; v<V; v++) {
 				emission[v][k] = Math.log(emission[v][k] / sum);
-				System.out.println(Math.exp(emission[v][k]));
+				//System.out.println(Math.exp(emission[v][k]));
 				if(emission[v][k] > MAX_EMISSION_EXP) {
 					MAX_EMISSION_EXP = emission[v][k];
 				}
@@ -146,7 +146,7 @@ public class NBayes {
 		for(int n=0; n<N; n++) {
 			for(int k=0; k<K; k++) {
 				posterior[k][n] = computePosterior(n, k);
-				System.out.println("Posterior: " + posterior[k][n]);
+				//System.out.println("Posterior: " + posterior[k][n]);
 			}
 		}
 		
@@ -250,7 +250,8 @@ public class NBayes {
 	 */
 	public double computePosterior(int n, int k) {
 		double numerator = computeJoint(n, k); //log (p(y,x))
-		System.out.println("numerator : " + Math.exp(numerator));
+		//System.out.println("numerator : " + Math.exp(numerator));
+		
 		double denominator = 0.0;
 		double sumexp = 0.0;
 		for(int j=0; j<K; j++) {
