@@ -37,7 +37,7 @@ public class NBayes {
 		this.c = c;
 		this.K = K;
 		this.V = V;
-		this.N = c.instanceList.size();
+		this.N = c.trainInstanceList.size();
 	}
 	
 	public void initializeSupervised() {
@@ -45,11 +45,11 @@ public class NBayes {
 		emission = new double[V][K];
 		for(int n=0; n<N; n++) {
 			for(int k=0; k<K; k++) {
-				if(c.instanceList.get(n).label == -1) {
+				if(c.trainInstanceList.get(n).label == -1) {
 					System.err.println("Error: labeled instance does not have label assigned");
 					System.exit(1);
 				}
-				if(c.instanceList.get(n).label == k) {
+				if(c.trainInstanceList.get(n).label == k) {
 					pi[k]++;
 				}
 			}
@@ -66,7 +66,7 @@ public class NBayes {
 		for(int n=0; n<N; n++) {
 			for(int k=0; k<K; k++) {
 				for(int v=0; v<V; v++) {
-					Instance instance = c.instanceList.get(n);
+					Instance instance = c.trainInstanceList.get(n);
 					for(int i=0; i < instance.words.length; i++) {
 						if(instance.words[i] == v && instance.label == k) {
 							emission[v][k]++;
@@ -166,7 +166,7 @@ public class NBayes {
 		for(int k=0; k<K; k++) {
 			for(int v=0; v<V; v++) {
 				for(int n=0; n<N; n++) {
-					Instance instance = c.instanceList.get(n);
+					Instance instance = c.trainInstanceList.get(n);
 					for(int i=0; i<instance.words.length; i++) {
 						if(instance.words[i] == v) {
 							emissionExpectedCounts[v][k] += posterior[k][n]; 
@@ -280,7 +280,18 @@ public class NBayes {
 	 * @param k = class
 	 */
 	public double computeJoint(int n, int k) {
-		Instance instance = c.instanceList.get(n);
+		Instance instance = c.trainInstanceList.get(n);
+		double prior = pi[k];
+		double prob = 0.0;
+		for(int i=0; i<instance.words.length; i++) {
+			prob += emission[instance.words[i]][k];
+		}
+		prob = prior + prob;
+		return prob;
+	}
+	
+	public double computeJointDecode(int n, int k) {
+		Instance instance = c.decodeInstanceList.get(n);
 		double prior = pi[k];
 		double prob = 0.0;
 		for(int i=0; i<instance.words.length; i++) {
@@ -335,11 +346,11 @@ public class NBayes {
 	
 	public void decode(String outFile) throws FileNotFoundException {
 		PrintWriter pw = new PrintWriter(outFile);
-		for(int n=0; n<N; n++) {
+		for(int n=0; n<c.decodeInstanceList.size(); n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
 			for(int k=0; k<K; k++) {
-				double prob = computeJoint(n, k);
+				double prob = computeJointDecode(n, k);
 				//System.out.println("prob " + Math.exp(prob));
 				if(prob > maxProb) {
 					maxProb = prob;
@@ -356,16 +367,16 @@ public class NBayes {
 		PrintWriter pw = new PrintWriter(outFile);
 		int correct = 0;
 		System.out.println("Instance \t Actual \t Predicted \t error \tprobability");
-		for(int n=0; n<N; n++) {
+		for(int n=0; n<c.decodeInstanceList.size(); n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
 			double maxActualProb = -Double.MAX_VALUE;
 			for(int k=0; k<K; k++) {
-				double prob = Math.exp(computeJoint(n, k));
+				double prob = Math.exp(computeJointDecode(n, k));
 				double actualProb = prob;
 				double denom = 0;
 				for(int i=0; i<K; i++) {
-					denom += Math.exp(computeJoint(n, i));
+					denom += Math.exp(computeJointDecode(n, i));
 				}
 				actualProb = prob / denom;
 				//System.out.println("prob " + prob + " actual prob " + actualProb);
@@ -377,7 +388,7 @@ public class NBayes {
 			}
 			String label = c.labelIdToString.get(maxCluster);
 			pw.println(label);
-			int actualCluster = c.instanceList.get(n).label;
+			int actualCluster = c.decodeInstanceList.get(n).label;
 			if(maxCluster == actualCluster) {
 				System.out.println((n+1) +"\t\t" + c.labelIdToString.get(actualCluster) + "\t\t" + label + "\t\t" + " " + "\t\t" + 
 						new DecimalFormat("##.##").format(maxActualProb));

@@ -10,7 +10,9 @@ import java.util.Map;
 public class Corpus {
 	//public static String delimiter = "\\+";
 	public String delimiter;
-	public InstanceList instanceList = new InstanceList();
+	public InstanceList trainInstanceList = new InstanceList();
+	
+	public InstanceList decodeInstanceList = new InstanceList();
 	
 	//for label
 	public int labelIdCount;
@@ -33,12 +35,12 @@ public class Corpus {
 			line = line.trim();
 			if(! line.isEmpty()) {
 				Instance instance = new Instance(this, line, containsLabel);
-				instanceList.add(instance);
+				trainInstanceList.add(instance);
 				totalWords += instance.words.length;
 			}
 		}
 		System.out.println("Train vocab size : " + trainVocab.vocabSize);
-		System.out.println("Train Instances: " + instanceList.size());
+		System.out.println("Train Instances: " + trainInstanceList.size());
 		System.out.println("Train token count: " + totalWords);
 		br.close();
 	}
@@ -51,7 +53,20 @@ public class Corpus {
 			labelIdToString = new ArrayList<String>();
 		}
 		corpusVocab.readVocabFromFile(this, inFile, containsLabel);
-		System.out.println("Total Vocab: " + corpusVocab.vocabSize);
+		BufferedReader br = new BufferedReader(new FileReader(inFile));
+		String line = null;
+		int totalWords = 0;
+		while( (line = br.readLine()) != null ) {
+			line = line.trim();
+			if(! line.isEmpty()) {
+				Instance instance = new Instance(this, line, containsLabel);
+				decodeInstanceList.add(instance);
+				totalWords += instance.words.length;
+			}
+		}
+		System.out.println("Decode Instances: " + decodeInstanceList.size());
+		System.out.println("Decode token count: " + totalWords);
+		br.close();
 	}
 	
 	public int getLabelMap(String label) {
