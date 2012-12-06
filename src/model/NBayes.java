@@ -12,7 +12,7 @@ import corpus.Vocabulary;
 
 public class NBayes {
 	Corpus c;
-	double smoothParam = .01; //smoothing parameter for normalization
+	double smoothParam = 1; //smoothing parameter for normalization
 	int K = -1;
 	int V = -1;
 	int N = -1;
@@ -24,10 +24,10 @@ public class NBayes {
 	double[] piExpectedCounts;
 	double[][] emissionExpectedCounts;
 	
-	boolean isLabeled;
+	boolean containsLabel;
 	
-	public NBayes(Corpus c, int K, int V, boolean isLabeled) {
-		this.isLabeled = isLabeled;
+	public NBayes(Corpus c, int K, int V, boolean containsLabel) {
+		this.containsLabel = containsLabel;
 		this.c = c;
 		this.K = K;
 		this.V = V;
@@ -263,7 +263,7 @@ public class NBayes {
 	public void decode(String outFile) throws FileNotFoundException {
 		PrintWriter pw = new PrintWriter(outFile);
 		int correct = 0;
-		if(isLabeled) {
+		if(containsLabel) {
 			System.out.println("Instance \t Actual \t Predicted \t error \tprobability");
 		}
 		for(int n=0; n<N; n++) {
@@ -284,7 +284,7 @@ public class NBayes {
 					maxActualProb = actualProb;
 				}
 			}
-			if(isLabeled) {
+			if(containsLabel) {
 				String label = c.labelIdToString.get(maxCluster);
 				pw.println(label);
 				int actualCluster = c.instanceList.get(n).label;
@@ -302,7 +302,7 @@ public class NBayes {
 			}
 			pw.flush();
 		}
-		if(isLabeled) {
+		if(containsLabel) {
 			System.out.println("Correct = " + correct + " Total = " + N + " Accuracy = " + (100.0 * correct/N));
 		}
 		pw.close();

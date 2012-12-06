@@ -17,11 +17,12 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		/** user parameters **/
-		int numIter = 100;
+		int numIter = 500;
 		long seed = 17;
 		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
-		boolean containsLabel = false;
+		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+		boolean containsLabel = true;
 		int numClass = 3; //not used if containsLabel = true;
 		/** user parameters end **/
 		
