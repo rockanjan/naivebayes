@@ -17,12 +17,12 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		/** user parameters **/
-		int numIter = 500;
+		int numIter = 50;
 		long seed = 17;
 		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
-		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
-		boolean containsLabel = true;
+		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+		boolean containsLabel = false;
 		int numClass = 3; //not used if containsLabel = true;
 		/** user parameters end **/
 		
@@ -40,6 +40,11 @@ public class Main {
 			model.train(numIter);
 		}
 		model.save();
-		model.decode(inFile + ".decoded");
+		if(containsLabel) {
+			model.decodeLabeled(inFile + ".decoded");
+		}
+		else {
+			model.decode(inFile + ".decoded");
+		}
 	}
 }

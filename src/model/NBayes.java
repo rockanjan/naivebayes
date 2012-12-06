@@ -26,6 +26,11 @@ public class NBayes {
 	
 	boolean containsLabel;
 	
+	double MAX_EMISSION_EXP = -Double.MAX_VALUE;
+	
+	double oldLogLikelihood = 0;
+	double logLikelihood = 0;
+	
 	public NBayes(Corpus c, int K, int V, boolean containsLabel) {
 		this.containsLabel = containsLabel;
 		this.c = c;
@@ -54,7 +59,7 @@ public class NBayes {
 		}
 		//normalize
 		for(int k=0; k<K; k++) {
-			pi[k] = pi[k] / sum;
+			pi[k] = Math.log(pi[k] / sum);			
 		}
 		
 		for(int n=0; n<N; n++) {
@@ -78,9 +83,14 @@ public class NBayes {
 			}
 			//normalize
 			for(int v=0; v<V; v++) {
-				emission[v][k] = emission[v][k] / sum;
+				emission[v][k] = Math.log(emission[v][k] / sum);
+				if(emission[v][k] > MAX_EMISSION_EXP) {
+					MAX_EMISSION_EXP = emission[v][k];
+				}
 			}
 		}
+		
+		sanityCheck();
 	}
 	
 	public void initializeRandom(Random r) {
@@ -88,32 +98,40 @@ public class NBayes {
 		emission = new double[V][K];
 		
 		double sum = 0;
-		for(int i=0; i<pi.length; i++) {
-			pi[i] = r.nextDouble() + 0.01;
-			sum += pi[i];
+		for(int k=0; k<pi.length; k++) {
+			pi[k] = r.nextDouble() + 0.01;
+			sum += pi[k];
 		}
 		//normalize
-		for(int i=0; i<pi.length; i++) {
-			pi[i] = pi[i]/sum;
+		for(int k=0; k<pi.length; k++) {
+			pi[k] = Math.log(pi[k] / sum);
 		}
 		
-		for(int i=0; i<K; i++) {
+		for(int k=0; k<K; k++) {
 			sum = 0;
-			for(int j=0; j<V; j++) {
-				emission[j][i] = r.nextDouble() + 0.01;
-				sum += emission[j][i];
+			for(int v=0; v<V; v++) {
+				emission[v][k] = r.nextDouble() + 0.01;
+				sum += emission[v][k];
 			}
 			//normalize
-			for(int j=0; j<V; j++) {
-				emission[j][i] = emission[j][i] / sum;
+			for(int v=0; v<V; v++) {
+				emission[v][k] = Math.log(emission[v][k] / sum);
+				if(emission[v][k] > MAX_EMISSION_EXP) {
+					MAX_EMISSION_EXP = emission[v][k];
+				}
 			}
 		}
+		
+		sanityCheck();
 	}
 	
 	public void train(int numIter){
 		int iterCount = 0;
 		while(iterCount < numIter) {
+			oldLogLikelihood = logLikelihood;
+			logLikelihood = 0;
 			eStep();
+			//System.out.println("Iter " + iterCount + " logLikelihood = " + logLikelihood + " difference = " + (logLikelihood - oldLogLikelihood) );
 			mStep();
 			sanityCheck();
 			iterCount++;
@@ -128,6 +146,7 @@ public class NBayes {
 				posterior[k][n] = computePosterior(n, k);
 			}
 		}
+		
 		//compute expected counts
 		piExpectedCounts = new double[K];
 		emissionExpectedCounts = new double[V][K];
@@ -160,12 +179,14 @@ public class NBayes {
 			sum += piExpectedCounts[k]; 
 		}
 		verifyPiSum(sum);//sum should be equal to N + K * smoothParam
+		
+		//normalize prior
 		for(int k=0; k<K; k++) {
-			pi[k] = piExpectedCounts[k] / sum;
+			pi[k] = Math.log(piExpectedCounts[k] / sum);
 		}
 		
 		//normalize emission
-		sum = 0;
+		MAX_EMISSION_EXP = -Double.MAX_VALUE;
 		for(int k=0; k<K; k++) {
 			sum = 0;
 			for(int v=0; v<V; v++) {
@@ -173,7 +194,11 @@ public class NBayes {
 				sum += emissionExpectedCounts[v][k]; 
 			}
 			for(int v=0; v<V; v++) {
-				emission[v][k] = emissionExpectedCounts[v][k] / sum;
+				emission[v][k] = Math.log(emissionExpectedCounts[v][k] / sum);
+				//System.out.println(emission[v][k]);
+				if(emission[v][k] > MAX_EMISSION_EXP) {
+					MAX_EMISSION_EXP = emission[v][k];
+				}
 			}
 		}
 		clearExpectedCounts();
@@ -182,7 +207,7 @@ public class NBayes {
 	public void sanityCheck() {
 		double piSum = 0;
 		for(int k=0; k<K; k++) {
-			piSum += pi[k];
+			piSum += Math.exp(pi[k]);
 		}
 		if(Math.abs(piSum - 1) > 1E-5) {
 			System.err.println("Error: Sanity check of pi not OK, sum = " + piSum);
@@ -192,7 +217,7 @@ public class NBayes {
 		for(int k=0; k<K; k++) {
 			double emissionSum = 0;
 			for(int v=0; v<V; v++) {
-				emissionSum += emission[v][k];
+				emissionSum += Math.exp(emission[v][k]);
 			}
 			if(Math.abs(piSum - 1) > 1E-5) {
 				System.err.println("Error: Sanity check of emission for cluster = " + k + " not OK, sum = " + emissionSum);
@@ -216,32 +241,43 @@ public class NBayes {
 	}
 	
 	/**
-	 * @return Computes posterior probability P(Y = k | X_n)
+	 * @return Computes posterior probability P(Y = k | X_n), no log
 	 * @param n = instance number
 	 * @param k = class
 	 */
 	public double computePosterior(int n, int k) {
-		double numerator = computeJoint(n, k);
+		double numerator = computeJoint(n, k); //log (p(y,x))
 		double denominator = 0.0;
+		double sumexp = 0.0;
 		for(int j=0; j<K; j++) {
-			denominator += computeJoint(n, j);
+			sumexp += Math.exp(computeJoint(n, k) - MAX_EMISSION_EXP);
 		}
-		return numerator / denominator;
-	}
+		denominator = MAX_EMISSION_EXP + Math.log(sumexp); //log(p(x))
+		logLikelihood += denominator;
+		double ratio = numerator - denominator;
+		//System.out.println(ratio);
+		double prob = Math.exp(ratio);
+		if(prob == 0) {
+			System.err.println("Numerator = " + numerator + " Denominator = " + denominator + " Ratio = " + ratio + " Prob = " + prob);
+			System.exit(-1);
+		}
+		//returns actual probability
+		return prob;
+	}	
 	
 	/**
-	 * @return joint probability
+	 * @return joint probability in log
 	 * @param n = instance number
 	 * @param k = class
 	 */
 	public double computeJoint(int n, int k) {
 		Instance instance = c.instanceList.get(n);
 		double prior = pi[k];
-		double prob = 1.0;
+		double prob = 0.0;
 		for(int i=0; i<instance.words.length; i++) {
-			prob = prob * emission[instance.words[i]][k];
+			prob += emission[instance.words[i]][k];
 		}
-		prob = prior * prob;
+		prob = prior + prob;
 		return prob;
 	}
 	
@@ -262,49 +298,60 @@ public class NBayes {
 	
 	public void decode(String outFile) throws FileNotFoundException {
 		PrintWriter pw = new PrintWriter(outFile);
-		int correct = 0;
-		if(containsLabel) {
-			System.out.println("Instance \t Actual \t Predicted \t error \tprobability");
+		for(int n=0; n<N; n++) {
+			int maxCluster = -1;
+			double maxProb = -Double.MAX_VALUE;
+			for(int k=0; k<K; k++) {
+				double prob = computeJoint(n, k);
+				//System.out.println("prob " + Math.exp(prob));
+				if(prob > maxProb) {
+					maxProb = prob;
+					maxCluster = k;
+				}
+			}
+			pw.println(maxCluster);
+			pw.flush();
 		}
+		pw.close();
+	}
+	
+	public void decodeLabeled(String outFile) throws FileNotFoundException {
+		PrintWriter pw = new PrintWriter(outFile);
+		int correct = 0;
+		System.out.println("Instance \t Actual \t Predicted \t error \tprobability");
 		for(int n=0; n<N; n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
 			double maxActualProb = -Double.MAX_VALUE;
 			for(int k=0; k<K; k++) {
-				double prob = computeJoint(n, k);
+				double prob = Math.exp(computeJoint(n, k));
 				double actualProb = prob;
 				double denom = 0;
 				for(int i=0; i<K; i++) {
-					denom += computeJoint(n, i);
+					denom += Math.exp(computeJoint(n, i));
 				}
 				actualProb = prob / denom;
+				//System.out.println("prob " + prob + " actual prob " + actualProb);
 				if(prob > maxProb) {
 					maxProb = prob;
 					maxCluster = k;
 					maxActualProb = actualProb;
 				}
 			}
-			if(containsLabel) {
-				String label = c.labelIdToString.get(maxCluster);
-				pw.println(label);
-				int actualCluster = c.instanceList.get(n).label;
-				if(maxCluster == actualCluster) {
-					System.out.println((n+1) +"\t\t" + c.labelIdToString.get(actualCluster) + "\t\t" + label + "\t\t" + " " + "\t\t" + 
-							new DecimalFormat("##.##").format(maxActualProb));
-					correct++;
-				} else {
-					System.out.println((n+1) +"\t\t" + c.labelIdToString.get(actualCluster) + "\t\t" + label + "\t\t" + "*" + "\t\t" + 
-							new DecimalFormat("##.##").format(maxActualProb));
-				}
-				
+			String label = c.labelIdToString.get(maxCluster);
+			pw.println(label);
+			int actualCluster = c.instanceList.get(n).label;
+			if(maxCluster == actualCluster) {
+				System.out.println((n+1) +"\t\t" + c.labelIdToString.get(actualCluster) + "\t\t" + label + "\t\t" + " " + "\t\t" + 
+						new DecimalFormat("##.##").format(maxActualProb));
+				correct++;
 			} else {
-				pw.println(maxCluster);
+				System.out.println((n+1) +"\t\t" + c.labelIdToString.get(actualCluster) + "\t\t" + label + "\t\t" + "*" + "\t\t" + 
+						new DecimalFormat("##.##").format(maxActualProb));
 			}
 			pw.flush();
 		}
-		if(containsLabel) {
-			System.out.println("Correct = " + correct + " Total = " + N + " Accuracy = " + (100.0 * correct/N));
-		}
+		System.out.println("Correct = " + correct + " Total = " + N + " Accuracy = " + (100.0 * correct/N));		
 		pw.close();
 	}
 }
