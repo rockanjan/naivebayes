@@ -16,17 +16,26 @@ public class Main {
 	 */
 	
 	public static void main(String[] args) throws IOException {
-		int numIter = 40;
-		long seed = 1;
-		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		int numClass = 100;
-		Corpus.read(inFile); //also reads the vocabulary
-		NBayes model = new NBayes(numClass, Vocabulary.vocabSize);
-		
+		int numIter = 100;
+		long seed = 17;
+		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
+		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+		int numClass = 2;
+		boolean containsLabel = true;
+		Corpus c = new Corpus();
+		c.read(inFile, containsLabel); //also reads the vocabulary
 		Random r = new Random(seed);
-		model.initializeRandom(r);
-		model.train(numIter);
+		NBayes model;
+		if(containsLabel) {
+			model = new NBayes(c, c.labelMap.size(), Vocabulary.vocabSize);
+			model.initializeSupervised();
+			//model.train(1);
+		} else {
+			model = new NBayes(c, numClass, Vocabulary.vocabSize);
+			model.initializeRandom(r);
+			model.train(numIter);
+		}
 		model.save();
-		model.decode();
+		model.decode(inFile + ".decoded");
 	}
 }

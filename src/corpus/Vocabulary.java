@@ -18,7 +18,7 @@ public class Vocabulary {
 	public static Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
 	//public static Map<String, Integer> wordToFrequency = new HashMap<String, Integer>();
 	
-	public static void readVocabFromFile(String filename) throws IOException {
+	public static void readVocabFromFile(String filename, boolean containsLabel) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line = null;
 		
@@ -26,7 +26,13 @@ public class Vocabulary {
 			line = line.trim();
 			if(! line.isEmpty()) {
 				String words[] = line.split(Corpus.delimiter);
-				for(String word : words) {
+				for(int i=0; i<words.length; i++) {
+					if(i == words.length-1) {
+						if(containsLabel) {
+							continue;
+						}
+					}
+					String word = words[i];
 					if(wordToIndex.containsKey(word)) {
 						int wordIndex = wordToIndex.get(word);
 						int oldFreq = indexToFrequency.get(wordIndex);
