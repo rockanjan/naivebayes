@@ -17,14 +17,14 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		/** user parameters **/
-		String delimiter = ",";
+		String delimiter = "\\+";
 		int numIter = 50;
 		long seed = 1;
-		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.hmm";
+		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
 		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
 		boolean containsLabel = false;
-		int numClass = 2; //not used if containsLabel = true;
+		int numClass = 100; //not used if containsLabel = true;
 		/** user parameters end **/
 		
 		Corpus c = new Corpus(delimiter);

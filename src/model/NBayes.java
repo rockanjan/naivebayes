@@ -3,6 +3,7 @@ package model;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.Random;
 
 import corpus.Corpus;
@@ -129,14 +130,17 @@ public class NBayes {
 	
 	public void train(int numIter){
 		int iterCount = 0;
+		System.out.println("Starting EM");
 		while(iterCount < numIter) {
 			oldLogLikelihood = logLikelihood;
 			logLikelihood = 0;
+			long startTime = System.currentTimeMillis();
 			eStep();
-			System.out.println("Iter " + iterCount + " logLikelihood = " + logLikelihood + " \tdifference = " + (logLikelihood - oldLogLikelihood) );
 			mStep();
+			long endTime = System.currentTimeMillis();
+			String time = (1.0 * (endTime - startTime)/1000/60) + " minutes";
+			System.out.println("Itr " + ++iterCount + " LL = " + logLikelihood + " \tdiff = " + (logLikelihood - oldLogLikelihood) + "\t time " + time + " mins");
 			sanityCheck();
-			iterCount++;
 		}
 	}
 	
