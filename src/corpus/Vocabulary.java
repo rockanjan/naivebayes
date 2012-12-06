@@ -11,13 +11,13 @@ import java.util.Map;
 import java.util.Random;
 
 public class Vocabulary {
-	private static int index = 0;
-	public static int vocabSize = -1;
-	public static Map<String, Integer> wordToIndex = new HashMap<String, Integer>();
-	public static ArrayList<String> indexToWord = new ArrayList<String>();
-	public static Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
+	private int index = 0;
+	public int vocabSize = -1;
+	public Map<String, Integer> wordToIndex = new HashMap<String, Integer>();
+	public ArrayList<String> indexToWord = new ArrayList<String>();
+	public Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
 	//public static Map<String, Integer> wordToFrequency = new HashMap<String, Integer>();
-	public static void readVocabFromFile(Corpus c, String filename, boolean containsLabel) throws IOException {
+	public void readVocabFromFile(Corpus c, String filename, boolean containsLabel) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line = null;
 		
@@ -51,7 +51,7 @@ public class Vocabulary {
 		
 	}
 	
-	public static int getIndex(String word) {
+	public int getIndex(String word) {
 		if(wordToIndex.containsKey(word)) {
 			return wordToIndex.get(word);
 		} else {

@@ -17,17 +17,15 @@ public class Corpus {
 	public Map<String, Integer> labelMap;
 	public ArrayList<String> labelIdToString;
 	
+	public Vocabulary corpusVocab; 
+	
 	public Corpus(String delimiter) {
 		this.delimiter = delimiter;
 	}
 	
 	public void read(String inFile, boolean containsLabel) throws IOException {
-		if(containsLabel) {
-			labelIdCount = 0;
-			labelMap = new HashMap<String, Integer>();
-			labelIdToString = new ArrayList<String>();
-		}
-		Vocabulary.readVocabFromFile(this, inFile, containsLabel);
+		Vocabulary trainVocab = new Vocabulary();
+		trainVocab.readVocabFromFile(this, inFile, containsLabel);
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
 		String line = null;
 		int totalWords = 0;
@@ -39,9 +37,21 @@ public class Corpus {
 				totalWords += instance.words.length;
 			}
 		}
-		System.out.println("Total Instances: " + instanceList.size());
-		System.out.println("Total Words: " + totalWords);
+		System.out.println("Train vocab size : " + trainVocab.vocabSize);
+		System.out.println("Train Instances: " + instanceList.size());
+		System.out.println("Train token count: " + totalWords);
 		br.close();
+	}
+	
+	public void readVocab(String inFile, boolean containsLabel) throws IOException {
+		corpusVocab = new Vocabulary();
+		if(containsLabel) {
+			labelIdCount = 0;
+			labelMap = new HashMap<String, Integer>();
+			labelIdToString = new ArrayList<String>();
+		}
+		corpusVocab.readVocabFromFile(this, inFile, containsLabel);
+		System.out.println("Total Vocab: " + corpusVocab.vocabSize);
 	}
 	
 	public int getLabelMap(String label) {
@@ -52,7 +62,6 @@ public class Corpus {
 			labelIdToString.add(label);
 			return labelIdCount++;
 		}
-		
 	}
 	
 	public static void main(String[] args) throws IOException {

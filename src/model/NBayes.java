@@ -307,7 +307,7 @@ public class NBayes {
 		PrintWriter dictionaryWriter = new PrintWriter(base + "dictionary.txt");
 		dictionaryWriter.println(V);
 		for(int v=0; v<V; v++) {
-			dictionaryWriter.println(Vocabulary.indexToWord.get(v));
+			dictionaryWriter.println(c.corpusVocab.indexToWord.get(v));
 			dictionaryWriter.flush();
 		}
 		dictionaryWriter.close();

@@ -19,7 +19,7 @@ public class Instance {
 				}
 			}
 			String word = splitted[i];
-			words[i] = Vocabulary.getIndex(word);
+			words[i] = c.corpusVocab.getIndex(word);
 		}
 	}
 }
