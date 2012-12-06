@@ -17,7 +17,7 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		/** user parameters **/
-		int numIter = 50;
+		int numIter = 5;
 		long seed = 17;
 		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
 		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
