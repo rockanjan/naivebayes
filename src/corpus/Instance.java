@@ -5,8 +5,7 @@ public class Instance {
 	public int label = -1;
 	Corpus c;
 	public Instance(Corpus c, String line, boolean containsLabel) {//read from line
-		this.c = c;
-		String splitted[] = line.split(Corpus.delimiter);
+		String splitted[] = line.split(c.delimiter);
 		if(containsLabel) {
 			words = new int[splitted.length - 1];
 		} else {

@@ -133,7 +133,7 @@ public class NBayes {
 			oldLogLikelihood = logLikelihood;
 			logLikelihood = 0;
 			eStep();
-			//System.out.println("Iter " + iterCount + " logLikelihood = " + logLikelihood + " difference = " + (logLikelihood - oldLogLikelihood) );
+			System.out.println("Iter " + iterCount + " logLikelihood = " + logLikelihood + " \tdifference = " + (logLikelihood - oldLogLikelihood) );
 			mStep();
 			sanityCheck();
 			iterCount++;
@@ -297,8 +297,36 @@ public class NBayes {
 		posterior = null;
 	}
 	
-	public void save() {
+	public void save() throws FileNotFoundException {
+		String base = "out/model/";
+		//dictionary
+		PrintWriter dictionaryWriter = new PrintWriter(base + "dictionary.txt");
+		dictionaryWriter.println(V);
+		for(int v=0; v<V; v++) {
+			dictionaryWriter.println(Vocabulary.indexToWord.get(v));
+			dictionaryWriter.flush();
+		}
+		dictionaryWriter.close();
 		
+		//prior
+		PrintWriter piWriter = new PrintWriter(base + "pi.txt");
+		piWriter.println(K);
+		for(int k=0; k<K; k++) {
+			piWriter.println(pi[k]);
+			piWriter.flush();
+		}
+		piWriter.close();
+		
+		//emission
+		PrintWriter emissionWriter = new PrintWriter(base + "emission.txt");
+		emissionWriter.println(V);
+		for(int v=0; v<V; v++) {
+			for(int k=0; k<K; k++) {
+				emissionWriter.println(emission[v][k]);
+				emissionWriter.flush();
+			}
+		}
+		emissionWriter.close();
 	}
 	
 	public void decode(String outFile) throws FileNotFoundException {

@@ -17,15 +17,14 @@ public class Vocabulary {
 	public static ArrayList<String> indexToWord = new ArrayList<String>();
 	public static Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
 	//public static Map<String, Integer> wordToFrequency = new HashMap<String, Integer>();
-	
-	public static void readVocabFromFile(String filename, boolean containsLabel) throws IOException {
+	public static void readVocabFromFile(Corpus c, String filename, boolean containsLabel) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line = null;
 		
 		while( (line = br.readLine()) != null) {
 			line = line.trim();
 			if(! line.isEmpty()) {
-				String words[] = line.split(Corpus.delimiter);
+				String words[] = line.split(c.delimiter);
 				for(int i=0; i<words.length; i++) {
 					if(i == words.length-1) {
 						if(containsLabel) {
@@ -39,6 +38,7 @@ public class Vocabulary {
 						indexToFrequency.put(wordIndex, oldFreq + 1);
 					} else {
 						wordToIndex.put(word, index);
+						indexToWord.add(word);
 						indexToFrequency.put(index, 1);
 						index++;
 					}

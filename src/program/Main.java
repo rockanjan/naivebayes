@@ -17,16 +17,17 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		/** user parameters **/
-		int numIter = 5;
-		long seed = 17;
+		String delimiter = ",";
+		int numIter = 50;
+		long seed = 1;
 		//String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
 		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
 		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
 		boolean containsLabel = false;
-		int numClass = 3; //not used if containsLabel = true;
+		int numClass = 2; //not used if containsLabel = true;
 		/** user parameters end **/
 		
-		Corpus c = new Corpus();
+		Corpus c = new Corpus(delimiter);
 		c.read(inFile, containsLabel); //also reads the vocabulary
 		Random r = new Random(seed);
 		NBayes model;

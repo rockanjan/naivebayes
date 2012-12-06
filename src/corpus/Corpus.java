@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class Corpus {
 	//public static String delimiter = "\\+";
-	public static String delimiter = ",";
+	public String delimiter;
 	public InstanceList instanceList = new InstanceList();
 	
 	//for label
@@ -17,13 +17,17 @@ public class Corpus {
 	public Map<String, Integer> labelMap;
 	public ArrayList<String> labelIdToString;
 	
+	public Corpus(String delimiter) {
+		this.delimiter = delimiter;
+	}
+	
 	public void read(String inFile, boolean containsLabel) throws IOException {
 		if(containsLabel) {
 			labelIdCount = 0;
 			labelMap = new HashMap<String, Integer>();
 			labelIdToString = new ArrayList<String>();
 		}
-		Vocabulary.readVocabFromFile(inFile, containsLabel);
+		Vocabulary.readVocabFromFile(this, inFile, containsLabel);
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
 		String line = null;
 		int totalWords = 0;
@@ -53,7 +57,7 @@ public class Corpus {
 	
 	public static void main(String[] args) throws IOException {
 		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		Corpus c = new Corpus();
+		Corpus c = new Corpus("\\+");
 		c.read(inFile, false);
 	}
 }
