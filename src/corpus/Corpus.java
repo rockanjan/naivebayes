@@ -1,6 +1,7 @@
 package corpus;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -23,6 +24,24 @@ public class Corpus {
 	
 	public Corpus(String delimiter) {
 		this.delimiter = delimiter;
+	}
+	
+	public void readDecodeInstance(String inFile, boolean containsLabel) throws IOException {
+		BufferedReader br = new BufferedReader(new FileReader(inFile));
+		String line = null;
+		int totalWords = 0;
+		decodeInstanceList = new InstanceList();
+		while( (line = br.readLine()) != null ) {
+			line = line.trim();
+			if(! line.isEmpty()) {
+				Instance instance = new Instance(this, line, containsLabel);
+				decodeInstanceList.add(instance);
+				totalWords += instance.words.length;
+			}
+		}
+		System.out.println("Decode Instances: " + trainInstanceList.size());
+		System.out.println("Decode token count: " + totalWords);
+		br.close();
 	}
 	
 	public void read(String inFile, boolean containsLabel) throws IOException {
@@ -67,6 +86,11 @@ public class Corpus {
 		System.out.println("Decode Instances: " + decodeInstanceList.size());
 		System.out.println("Decode token count: " + totalWords);
 		br.close();
+	}
+	
+	public void readVocabFromVocabFile(String filename) {
+		corpusVocab = new Vocabulary();
+		corpusVocab.readVocabFromVocabFile(filename);
 	}
 	
 	public int getLabelMap(String label) {

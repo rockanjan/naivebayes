@@ -1,11 +1,6 @@
-10
-sunny
-hot
-high
-FALSE
-TRUE
-overcast
-rainy
-mild
-cool
-normal
+5
+1
+2
+3
+4
+5

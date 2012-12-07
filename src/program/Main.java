@@ -9,26 +9,27 @@ import corpus.Corpus;
 import corpus.Vocabulary;
 
 public class Main {
-
-	/**
-	 * @param args
-	 * @throws IOException 
-	 */
+	
+	/** user parameters **/
+	String delimiter = "\\+";
+	int numIter = 25;
+	long seed = 1;
+	String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.small";
+	String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.small";
+	
+	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+	boolean containsLabel = false;
+	int numClass = 3; //not used if containsLabel = true;
+	/** user parameters end **/
 	
 	public static void main(String[] args) throws IOException {
-		/** user parameters **/
-		String delimiter = "\\+";
-		int numIter = 50;
-		long seed = 1;
-		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.hmm.200000";
-		String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.hmm";
-		
-		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
-		//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
-		boolean containsLabel = false;
-		int numClass = 100; //not used if containsLabel = true;
-		/** user parameters end **/
-		
+		Main main = new Main();
+		//main.train();
+		main.test();
+	}
+	
+	public void train() throws IOException {
 		Corpus c = new Corpus(delimiter);
 		c.readVocab(vocabFile, containsLabel);
 		c.read(inFile, containsLabel); 
@@ -48,6 +49,22 @@ public class Main {
 			model.decodeLabeled(inFile + ".decoded");
 		}
 		else {
+			model.decode(inFile + ".decoded");
+		}
+	}
+	
+	public void test() throws IOException {
+		Corpus c = new Corpus(delimiter);
+		c.readVocabFromVocabFile(NBayes.base + "/dictionary.txt");
+		c.readDecodeInstance(vocabFile, containsLabel);
+		NBayes model;
+		if(containsLabel) {
+			model = new NBayes(c, c.labelMap.size(), c.corpusVocab.vocabSize, containsLabel);
+			model.load();
+			model.decodeLabeled(inFile + ".decoded");
+		} else {
+			model = new NBayes(c, numClass, c.corpusVocab.vocabSize, containsLabel);
+			model.load();
 			model.decode(inFile + ".decoded");
 		}
 	}
