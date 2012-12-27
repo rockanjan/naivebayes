@@ -143,18 +143,33 @@ public class NBayes {
 			oldLogLikelihood = logLikelihood;
 			logLikelihood = 0;
 			long startTime = System.currentTimeMillis();
+			
+			//e-step
+			long eStartTime = System.currentTimeMillis();
 			eStep();
+			long eEndTime = System.currentTimeMillis();
+			String eTime = (1.0 * (eEndTime - eStartTime) / 1000 / 60) + " minutes";
+			System.out.println("\t E-step time : " + eTime);
+			
+			//m-step
+			long mStartTime = System.currentTimeMillis();
 			mStep();
+			long mEndTime = System.currentTimeMillis();
+			String mTime = (1.0 * (mEndTime - mStartTime) / 1000 / 60) + " minutes";
+			System.out.println("\t M-step time : " + mTime);
+			
+			
 			long endTime = System.currentTimeMillis();
 			String time = (1.0 * (endTime - startTime) / 1000 / 60)
 					+ " minutes";
 			System.out.println("Itr " + ++iterCount + " LL = " + logLikelihood
 					+ " \tdiff = " + (logLikelihood - oldLogLikelihood)
-					+ "\t time " + time + " mins");
+					+ "\t time " + time);
 			sanityCheck();
 		}
 	}
 
+	//e-step overall complexity O(K N |X_i| + N K^2) where |X_i| is the average token length of the instance
 	public void eStep() {
 		// find the posteriors P(Y=k | X=n; \theta)
 		initPosterior();
@@ -175,16 +190,16 @@ public class NBayes {
 		}
 
 		for (int k = 0; k < K; k++) {
-			for (int v = 0; v < V; v++) {
+			//for (int v = 0; v < V; v++) {
 				for (int n = 0; n < N; n++) {
 					Instance instance = c.trainInstanceList.get(n);
 					for (int i = 0; i < instance.words.length; i++) {
-						if (instance.words[i] == v) {
-							emissionExpectedCounts[v][k] += posterior[k][n];
-						}
+						//if (instance.words[i] == v) {
+							emissionExpectedCounts[instance.words[i]][k] += posterior[k][n];
+						//}
 					}
 				}
-			}
+			//}
 		}
 	}
 
@@ -419,10 +434,14 @@ public class NBayes {
 		V = Integer.parseInt(line);
 		emission = new double[V][K];
 		index = 0;
+		MAX_EMISSION_EXP = -Double.MAX_VALUE;
 		while( (line = brEmission.readLine()) != null) {
 			int v = (int) index/K;
 			int k = index % K;
 			emission[v][k] = Double.parseDouble(line);
+			if(emission[v][k] > MAX_EMISSION_EXP) {
+				MAX_EMISSION_EXP = emission[v][k];
+			}
 			index++;
 		}
 		brEmission.close();

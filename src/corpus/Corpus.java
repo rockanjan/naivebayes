@@ -39,7 +39,7 @@ public class Corpus {
 				totalWords += instance.words.length;
 			}
 		}
-		System.out.println("Decode Instances: " + trainInstanceList.size());
+		System.out.println("Decode Instances: " + decodeInstanceList.size());
 		System.out.println("Decode token count: " + totalWords);
 		br.close();
 	}
