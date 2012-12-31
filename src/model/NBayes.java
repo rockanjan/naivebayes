@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Random;
 
@@ -70,15 +71,16 @@ public class NBayes {
 		for (int k = 0; k < K; k++) {
 			pi[k] = Math.log(pi[k] / sum);
 		}
-
+		
 		for (int n = 0; n < N; n++) {
 			for (int k = 0; k < K; k++) {
-				for (int v = 0; v < V; v++) {
+//				for (int v = 0; v < V; v++) {
 					Instance instance = c.trainInstanceList.get(n);
 					for (int i = 0; i < instance.words.length; i++) {
-						if (instance.words[i] == v && instance.label == k) {
-							emission[v][k]++;
-						}
+//						if (instance.words[i] == v && instance.label == k) {
+						if (instance.label == k) {
+							emission[instance.words[i]][k]++;
+//						}
 					}
 				}
 			}
@@ -404,6 +406,18 @@ public class NBayes {
 			}
 		}
 		emissionWriter.close();
+		
+		if(containsLabel) {
+			//labels
+			PrintWriter labelWriter = new PrintWriter(base + "/label.txt");
+			labelWriter.println(c.labelMap.size());
+			for(int i=0; i<c.labelIdToString.size(); i++) {
+				labelWriter.println(c.labelIdToString.get(i));
+				labelWriter.flush();
+			}
+			labelWriter.close();
+		}
+		
 	}
 
 	public void load() throws IOException {
@@ -411,8 +425,7 @@ public class NBayes {
 		//dictionary
 		System.out.println("\treading dictionary...");
 		c.readVocabFromVocabFile(base + "/dictionary.txt");
-		*/
-		
+		*/		
 		System.out.println("\treading prior...");
 		BufferedReader brPi = new BufferedReader(new FileReader(base + "/pi.txt"));
 		String line = null;
@@ -446,9 +459,20 @@ public class NBayes {
 		}
 		brEmission.close();
 		System.out.println("\treading emission...");
-		
 		//sanity check
 		sanityCheck();
+		
+		if(containsLabel) {
+			System.out.println("\treading labels...");
+			BufferedReader brLabel = new BufferedReader(new FileReader(base + "/label.txt"));
+			line = brLabel.readLine().trim();
+			c.labelIdToString = new ArrayList<String>();
+			while( (line = brLabel.readLine() ) != null) {
+				line = line.trim();
+				c.labelIdToString.add(line);
+			}
+			brLabel.close();
+		}
 	}
 
 	public void decode(String outFile) throws FileNotFoundException {
