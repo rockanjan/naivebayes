@@ -57,6 +57,7 @@ public class Vocabulary {
 		
 	}
 	
+	//reads from the dictionary
 	public void readVocabFromVocabFile(String filename) {
 		BufferedReader br = null;
 		try {

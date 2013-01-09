@@ -12,29 +12,30 @@ public class Main {
 	
 	/** user parameters **/
 	String delimiter = "\\+";
-	int numIter = 40;
+	int numIter = 50;
 	long seed = 1;
-	String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.word_hmm";
-	String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span.word_hmm";
+	String trainFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/train.nbayes.after";
+	String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
+	String testFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
 	
 	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
 	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
-	boolean containsLabel = false;
+	boolean containsLabel = true;
 	int numClass = 100; //not used if containsLabel = true;
 	/** user parameters end **/
 	
 	public static void main(String[] args) throws IOException {
 		Main main = new Main();
-		main.train();
+		//main.train();
 		//main.continueTrain();
-		//main.test();
+		main.test();
 	}
 	
 	public void continueTrain() throws IOException {
 		Corpus c = new Corpus(delimiter);
 		c.readVocabFromVocabFile(NBayes.base + "/dictionary.txt");
-		c.readDecodeInstance(vocabFile, containsLabel);
-		c.read(inFile, containsLabel); 
+		c.readTrain(trainFile, containsLabel);
+		c.readTest(testFile, containsLabel);
 		NBayes model;
 		if(containsLabel) {
 			model = new NBayes(c, c.labelMap.size(), c.corpusVocab.vocabSize, containsLabel);
@@ -47,17 +48,18 @@ public class Main {
 		}
 		model.save();
 		if(containsLabel) {
-			model.decodeLabeled(inFile + ".decoded");
+			model.decodeLabeled(testFile + ".decoded");
 		}
 		else {
-			model.decode(inFile + ".decoded");
+			model.decode(testFile + ".decoded");
 		}
 	}
 	
 	public void train() throws IOException {
 		Corpus c = new Corpus(delimiter);
 		c.readVocab(vocabFile, containsLabel);
-		c.read(inFile, containsLabel); 
+		c.readTrain(trainFile, containsLabel);
+		c.readTest(testFile, containsLabel); 
 		Random r = new Random(seed);
 		NBayes model;
 		if(containsLabel) {
@@ -71,26 +73,29 @@ public class Main {
 		}
 		model.save();
 		if(containsLabel) {
-			model.decodeLabeled(inFile + ".decoded");
+			model.decodeLabeled(testFile + ".decoded");
 		}
 		else {
-			model.decode(inFile + ".decoded");
+			model.decode(testFile + ".decoded");
 		}
 	}
 	
 	public void test() throws IOException {
 		Corpus c = new Corpus(delimiter);
+		if(containsLabel) {
+			c.readLabels(NBayes.base + "/label.txt");
+		}
 		c.readVocabFromVocabFile(NBayes.base + "/dictionary.txt");
-		c.readDecodeInstance(vocabFile, containsLabel);
+		c.readTest(testFile, containsLabel);
 		NBayes model;
 		if(containsLabel) {
 			model = new NBayes(c, c.labelMap.size(), c.corpusVocab.vocabSize, containsLabel);
 			model.load();
-			model.decodeLabeled(inFile + ".decoded");
+			model.decodeLabeledVector(testFile + ".decoded");
 		} else {
 			model = new NBayes(c, numClass, c.corpusVocab.vocabSize, containsLabel);
 			model.load();
-			model.decode(inFile + ".decoded");
+			model.decode(testFile + ".decoded");
 		}
 	}
 }

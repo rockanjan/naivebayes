@@ -52,6 +52,7 @@ public class NBayes {
 		pi = new double[K];
 		emission = new double[V][K];
 		for (int n = 0; n < N; n++) {
+			if(n % 100000 == 0)	System.out.println("Sentence Number: " + n);
 			for (int k = 0; k < K; k++) {
 				if (c.trainInstanceList.get(n).label == -1) {
 					System.err
@@ -328,8 +329,8 @@ public class NBayes {
 		return prob;
 	}
 
-	public double computeJointDecode(int n, int k) {
-		Instance instance = c.decodeInstanceList.get(n);
+	public double computeJointTest(int n, int k) {
+		Instance instance = c.testInstanceList.get(n);
 		double prior = pi[k];
 		double prob = 0.0;
 		for (int i = 0; i < instance.words.length; i++) {
@@ -462,6 +463,7 @@ public class NBayes {
 		//sanity check
 		sanityCheck();
 		
+		/*
 		if(containsLabel) {
 			System.out.println("\treading labels...");
 			BufferedReader brLabel = new BufferedReader(new FileReader(base + "/label.txt"));
@@ -473,16 +475,17 @@ public class NBayes {
 			}
 			brLabel.close();
 		}
+		*/
 	}
 
 	public void decode(String outFile) throws FileNotFoundException {
 		System.out.println("Decoding to " + outFile);
 		PrintWriter pw = new PrintWriter(outFile);
-		for (int n = 0; n < c.decodeInstanceList.size(); n++) {
+		for (int n = 0; n < c.testInstanceList.size(); n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
 			for (int k = 0; k < K; k++) {
-				double prob = computeJointDecode(n, k);
+				double prob = computeJointTest(n, k);
 				// System.out.println("prob " + Math.exp(prob));
 				if (prob > maxProb) {
 					maxProb = prob;
@@ -501,45 +504,112 @@ public class NBayes {
 		int correct = 0;
 		System.out
 				.println("Instance \t Actual \t Predicted \t error \tprobability");
-		for (int n = 0; n < c.decodeInstanceList.size(); n++) {
+		int totalB = 0;
+		int correctB = 0;
+		for (int n = 0; n < c.testInstanceList.size(); n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
 			double maxActualProb = -Double.MAX_VALUE;
 			for (int k = 0; k < K; k++) {
-				double prob = Math.exp(computeJointDecode(n, k));
+				double prob = Math.exp(computeJointTest(n, k));
 				double actualProb = prob;
 				double denom = 0;
 				for (int i = 0; i < K; i++) {
-					denom += Math.exp(computeJointDecode(n, i));
+					denom += Math.exp(computeJointTest(n, i));
 				}
 				actualProb = prob / denom;
-				// System.out.println("prob " + prob + " actual prob " +
-				// actualProb);
+				//System.out.println("prob " + prob + " actual prob " + actualProb);
 				if (prob > maxProb) {
 					maxProb = prob;
 					maxCluster = k;
 					maxActualProb = actualProb;
 				}
 			}
+			//System.out.println();
 			String label = c.labelIdToString.get(maxCluster);
 			pw.println(label);
-			int actualCluster = c.decodeInstanceList.get(n).label;
+			int actualCluster = c.testInstanceList.get(n).label;
+			
+			if(c.labelIdToString.get(actualCluster).equals("B")) {
+				totalB++;
+				if(c.labelIdToString.get(maxCluster).equals("B")) {
+					correctB++;
+				}
+			}
+			
 			if (maxCluster == actualCluster) {
-				System.out.println((n + 1) + "\t\t"
+				/*System.out.println((n + 1) + "\t\t"
 						+ c.labelIdToString.get(actualCluster) + "\t\t" + label
 						+ "\t\t" + " " + "\t\t"
 						+ new DecimalFormat("##.##").format(maxActualProb));
-				correct++;
+						*/
+				correct++;				
 			} else {
-				System.out.println((n + 1) + "\t\t"
+				/*System.out.println((n + 1) + "\t\t"
 						+ c.labelIdToString.get(actualCluster) + "\t\t" + label
 						+ "\t\t" + "*" + "\t\t"
 						+ new DecimalFormat("##.##").format(maxActualProb));
+						*/
 			}
+						
 			pw.flush();
 		}
-		System.out.println("Correct = " + correct + " Total = " + N
-				+ " Accuracy = " + (100.0 * correct / N));
+		System.out.println("CorrectB = " + correctB + " totalB = " + totalB + " Accuray for B = " + 100.0 * correctB / totalB);
+		System.out.println("Correct = " + correct + " Total = " + c.testInstanceList.size()
+				+ " Accuracy = " + (100.0 * correct / c.testInstanceList.size()));
+		pw.close();
+	}
+	
+	public void decodeLabeledVector(String outFile) throws FileNotFoundException {
+		PrintWriter pw = new PrintWriter(outFile);
+		int correct = 0;
+		int totalB = 0;
+		int correctB = 0;
+		DecimalFormat df = new DecimalFormat("#.#");
+		int[] keys = {c.labelMap.get("B"), c.labelMap.get("I"), c.labelMap.get("O")};
+		for (int n = 0; n < c.testInstanceList.size(); n++) {
+			int maxCluster = -1;
+			double maxProb = -Double.MAX_VALUE;
+			double maxActualProb = -Double.MAX_VALUE;
+			int printCount = 0;
+			for (int k : keys) {
+				double prob = Math.exp(computeJointTest(n, k));
+				double actualProb = prob;
+				double denom = 0;
+				for (int i = 0; i < K; i++) {
+					denom += Math.exp(computeJointTest(n, i));
+				}
+				actualProb = prob / denom;
+				pw.print(df.format(actualProb));
+				printCount++;
+				if(printCount == keys.length) {
+					pw.println();
+				} else {
+					pw.print(" ");
+				}
+				//System.out.println("prob " + prob + " actual prob " + actualProb);
+				if (prob > maxProb) {
+					maxProb = prob;
+					maxCluster = k;
+					maxActualProb = actualProb;
+				}
+			}
+			//System.out.println();
+			String label = c.labelIdToString.get(maxCluster);
+			int actualCluster = c.testInstanceList.get(n).label;
+			if(c.labelIdToString.get(actualCluster).equals("B")) {
+				totalB++;
+				if(c.labelIdToString.get(maxCluster).equals("B")) {
+					correctB++;
+				}
+			}
+			if (maxCluster == actualCluster)
+				correct++;
+			pw.flush();
+		}
+		System.out.println("CorrectB = " + correctB + " totalB = " + totalB + " Accuray for B = " + 100.0 * correctB / totalB);
+		System.out.println("Correct = " + correct + " Total = " + c.testInstanceList.size()
+				+ " Accuracy = " + (100.0 * correct / c.testInstanceList.size()));
 		pw.close();
 	}
 }
