@@ -12,8 +12,7 @@ public class Corpus {
 	//public static String delimiter = "\\+";
 	public String delimiter;
 	public InstanceList trainInstanceList = new InstanceList();
-	
-	public InstanceList decodeInstanceList = new InstanceList();
+	public InstanceList testInstanceList = new InstanceList();
 	
 	//for label
 	public int labelIdCount;
@@ -26,25 +25,25 @@ public class Corpus {
 		this.delimiter = delimiter;
 	}
 	
-	public void readDecodeInstance(String inFile, boolean containsLabel) throws IOException {
+	public void readTest(String inFile, boolean containsLabel) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
 		String line = null;
 		int totalWords = 0;
-		decodeInstanceList = new InstanceList();
+		testInstanceList = new InstanceList();
 		while( (line = br.readLine()) != null ) {
 			line = line.trim();
 			if(! line.isEmpty()) {
 				Instance instance = new Instance(this, line, containsLabel);
-				decodeInstanceList.add(instance);
+				testInstanceList.add(instance);
 				totalWords += instance.words.length;
 			}
 		}
-		System.out.println("Decode Instances: " + decodeInstanceList.size());
-		System.out.println("Decode token count: " + totalWords);
+		System.out.println("Test Instances: " + testInstanceList.size());
+		System.out.println("Test token count: " + totalWords);
 		br.close();
 	}
 	
-	public void read(String inFile, boolean containsLabel) throws IOException {
+	public void readTrain(String inFile, boolean containsLabel) throws IOException {
 		Vocabulary trainVocab = new Vocabulary();
 		trainVocab.readVocabFromFile(this, inFile, containsLabel);
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
@@ -72,6 +71,7 @@ public class Corpus {
 			labelIdToString = new ArrayList<String>();
 		}
 		corpusVocab.readVocabFromFile(this, inFile, containsLabel);
+		/*
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
 		String line = null;
 		int totalWords = 0;
@@ -83,14 +83,30 @@ public class Corpus {
 				totalWords += instance.words.length;
 			}
 		}
-		System.out.println("Decode Instances: " + decodeInstanceList.size());
-		System.out.println("Decode token count: " + totalWords);
+		System.out.println("Vocab Instances: " + decodeInstanceList.size());
+		System.out.println("Vocab token count: " + totalWords);
 		br.close();
+		*/
 	}
 	
 	public void readVocabFromVocabFile(String filename) {
 		corpusVocab = new Vocabulary();
 		corpusVocab.readVocabFromVocabFile(filename);
+	}
+	
+	public void readLabels(String filename) throws IOException {
+		System.out.println("\treading labels...");
+		BufferedReader brLabel = new BufferedReader(new FileReader(filename));
+		String	line = brLabel.readLine().trim();
+		this.labelIdToString = new ArrayList<String>();
+		this.labelMap = new HashMap<String, Integer>();
+		while( (line = brLabel.readLine() ) != null) {
+			line = line.trim();
+			this.labelMap.put(line, this.labelIdToString.size());
+			this.labelIdToString.add(line);
+			
+		}
+		brLabel.close();
 	}
 	
 	public int getLabelMap(String label) {
@@ -106,6 +122,6 @@ public class Corpus {
 	public static void main(String[] args) throws IOException {
 		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
 		Corpus c = new Corpus("\\+");
-		c.read(inFile, false);
+		c.readVocab(inFile, false);
 	}
 }
