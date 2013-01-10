@@ -142,6 +142,7 @@ public class NBayes {
 	public void train(int numIter) {
 		int iterCount = 0;
 		System.out.println("Starting EM");
+		int smallCount = 0;
 		while (iterCount < numIter) {
 			oldLogLikelihood = logLikelihood;
 			logLikelihood = 0;
@@ -152,23 +153,33 @@ public class NBayes {
 			eStep();
 			long eEndTime = System.currentTimeMillis();
 			String eTime = (1.0 * (eEndTime - eStartTime) / 1000 / 60) + " minutes";
-			System.out.println("\t E-step time : " + eTime);
+			//System.out.println("\t E-step time : " + eTime);
 			
 			//m-step
 			long mStartTime = System.currentTimeMillis();
 			mStep();
 			long mEndTime = System.currentTimeMillis();
 			String mTime = (1.0 * (mEndTime - mStartTime) / 1000 / 60) + " minutes";
-			System.out.println("\t M-step time : " + mTime);
+			//System.out.println("\t M-step time : " + mTime);
 			
 			
 			long endTime = System.currentTimeMillis();
 			String time = (1.0 * (endTime - startTime) / 1000 / 60)
 					+ " minutes";
+			double diff =  logLikelihood - oldLogLikelihood;
 			System.out.println("Itr " + ++iterCount + " LL = " + logLikelihood
-					+ " \tdiff = " + (logLikelihood - oldLogLikelihood)
+					+ " \tdiff = " + (diff)
 					+ "\t time " + time);
 			sanityCheck();
+			if(diff < 1000) {
+				smallCount++;
+			} else {
+				smallCount = 0;
+			}
+			if(smallCount == 3) {
+				System.out.println("LL converged. Exiting from EM");
+				break;
+			}
 		}
 	}
 
@@ -481,17 +492,34 @@ public class NBayes {
 	public void decode(String outFile) throws FileNotFoundException {
 		System.out.println("Decoding to " + outFile);
 		PrintWriter pw = new PrintWriter(outFile);
+		DecimalFormat df = new DecimalFormat("#.#");
 		for (int n = 0; n < c.testInstanceList.size(); n++) {
 			int maxCluster = -1;
 			double maxProb = -Double.MAX_VALUE;
+			double[] probVector = new double[K];
+			double sum = 0;
 			for (int k = 0; k < K; k++) {
-				double prob = computeJointTest(n, k);
+				double prob = Math.exp(computeJointTest(n, k));
+				probVector[k] = prob;
+				sum += prob;
 				// System.out.println("prob " + Math.exp(prob));
 				if (prob > maxProb) {
 					maxProb = prob;
 					maxCluster = k;
 				}
 			}
+			//normalize
+			/*
+			for(int k=0; k<K; k++) {
+				probVector[k] = probVector[k]/sum;
+				pw.print(df.format(probVector[k]));
+				if(k == K-1) {
+					pw.println();
+				} else {
+					pw.print(" ");
+				}
+			}
+			*/
 			pw.println(maxCluster);
 			pw.flush();
 		}

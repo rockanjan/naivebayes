@@ -14,21 +14,21 @@ public class Main {
 	String delimiter = "\\+";
 	int numIter = 50;
 	long seed = 1;
-	String trainFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/train.nbayes.after";
+	String trainFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
 	String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
 	String testFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
 	
 	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
 	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
-	boolean containsLabel = true;
-	int numClass = 100; //not used if containsLabel = true;
+	boolean containsLabel = false;
+	int numClass = 40; //not used if containsLabel = true;
 	/** user parameters end **/
 	
 	public static void main(String[] args) throws IOException {
 		Main main = new Main();
-		//main.train();
+		main.train();
 		//main.continueTrain();
-		main.test();
+		//main.test();
 	}
 	
 	public void continueTrain() throws IOException {
@@ -73,7 +73,7 @@ public class Main {
 		}
 		model.save();
 		if(containsLabel) {
-			model.decodeLabeled(testFile + ".decoded");
+			model.decodeLabeledVector(testFile + ".decoded");
 		}
 		else {
 			model.decode(testFile + ".decoded");
