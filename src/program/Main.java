@@ -14,14 +14,22 @@ public class Main {
 	String delimiter = "\\+";
 	int numIter = 50;
 	long seed = 1;
-	String trainFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
-	String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
-	String testFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
 	
-	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
-	//String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+	//String trainFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
+	//String vocabFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
+	//String testFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/paper/nbayes/combined.nbayes.after";
+	/*
+	String trainFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+	String vocabFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+	String testFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+	*/
+	
+	String trainFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+	String vocabFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+	String testFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.nolabel.txt";
+	
 	boolean containsLabel = false;
-	int numClass = 40; //not used if containsLabel = true;
+	int numClass = 4; //not used if containsLabel = true;
 	/** user parameters end **/
 	
 	public static void main(String[] args) throws IOException {
@@ -73,7 +81,7 @@ public class Main {
 		}
 		model.save();
 		if(containsLabel) {
-			model.decodeLabeledVector(testFile + ".decoded");
+			model.decodeLabeled(testFile + ".decoded");
 		}
 		else {
 			model.decode(testFile + ".decoded");

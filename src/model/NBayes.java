@@ -187,10 +187,26 @@ public class NBayes {
 	public void eStep() {
 		// find the posteriors P(Y=k | X=n; \theta)
 		initPosterior();
+		
 		for (int n = 0; n < N; n++) {
+			double sumexp = 0.0;
 			for (int k = 0; k < K; k++) {
-				posterior[k][n] = computePosterior(n, k);
-				// System.out.println("Posterior: " + posterior[k][n]);
+				posterior[k][n] = computeJoint(n, k);
+				sumexp += Math.exp(posterior[k][n] - MAX_EMISSION_EXP);
+			}
+			double denominator = 0.0;
+			denominator = MAX_EMISSION_EXP + Math.log(sumexp); // log(p(x))
+			logLikelihood += denominator;
+			System.out.println("loglikelihood = " + logLikelihood);
+			for (int k = 0; k < K; k++) {
+				double ratio = posterior[k][n] - denominator;
+				double prob = Math.exp(ratio);
+				if (prob == 0) {
+					System.err.println("Numerator = " +  posterior[k][n] + " Denominator = "
+							+ denominator + " Ratio = " + ratio + " Prob = " + prob);
+					System.exit(-1);
+				}
+				posterior[k][n] = prob;
 			}
 		}
 
@@ -290,36 +306,6 @@ public class NBayes {
 			System.err.println("Error: pi sum = " + sum + " should be "
 					+ actual);
 		}
-	}
-
-	/**
-	 * @return Computes posterior probability P(Y = k | X_n), no log
-	 * @param n
-	 *            = instance number
-	 * @param k
-	 *            = class
-	 */
-	public double computePosterior(int n, int k) {
-		double numerator = computeJoint(n, k); // log (p(y,x))
-		// System.out.println("numerator : " + Math.exp(numerator));
-
-		double denominator = 0.0;
-		double sumexp = 0.0;
-		for (int j = 0; j < K; j++) {
-			sumexp += Math.exp(computeJoint(n, j) - MAX_EMISSION_EXP);
-		}
-		denominator = MAX_EMISSION_EXP + Math.log(sumexp); // log(p(x))
-		logLikelihood += denominator;
-		double ratio = numerator - denominator;
-		// System.out.println(ratio);
-		double prob = Math.exp(ratio);
-		if (prob == 0) {
-			System.err.println("Numerator = " + numerator + " Denominator = "
-					+ denominator + " Ratio = " + ratio + " Prob = " + prob);
-			System.exit(-1);
-		}
-		// returns actual probability
-		return prob;
 	}
 
 	/**
