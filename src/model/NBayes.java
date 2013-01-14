@@ -39,13 +39,18 @@ public class NBayes {
 	double logLikelihood = 0;
 
 	public static String base = "out/model/";
-
-	public NBayes(Corpus c, int K, int V, boolean containsLabel) {
+	private String outFolderPrefix;
+	public static String modelFolder;
+	
+	public NBayes(Corpus c, int K, int V, boolean containsLabel, String outFolderPrefix) {
 		this.containsLabel = containsLabel;
 		this.c = c;
 		this.K = K;
 		this.V = V;
 		this.N = c.trainInstanceList.size();
+		this.outFolderPrefix = outFolderPrefix;
+		modelFolder = base + outFolderPrefix + "/";
+
 	}
 
 	public void initializeSupervised() {
@@ -143,6 +148,7 @@ public class NBayes {
 		int iterCount = 0;
 		System.out.println("Starting EM");
 		int smallCount = 0;
+		DecimalFormat df = new DecimalFormat("#.###");
 		while (iterCount < numIter) {
 			oldLogLikelihood = logLikelihood;
 			logLikelihood = 0;
@@ -153,30 +159,34 @@ public class NBayes {
 			eStep();
 			long eEndTime = System.currentTimeMillis();
 			String eTime = (1.0 * (eEndTime - eStartTime) / 1000 / 60) + " minutes";
-			System.out.println("\t E-step time : " + eTime);
+			//System.out.println("\t E-step time : " + eTime);
 			
 			//m-step
 			long mStartTime = System.currentTimeMillis();
 			mStep();
 			long mEndTime = System.currentTimeMillis();
 			String mTime = (1.0 * (mEndTime - mStartTime) / 1000 / 60) + " minutes";
-			System.out.println("\t M-step time : " + mTime);
+			//System.out.println("\t M-step time : " + mTime);
 			
 			
 			long endTime = System.currentTimeMillis();
-			String time = (1.0 * (endTime - startTime) / 1000 / 60)
+			String time = df.format(1.0 * (endTime - startTime) / 1000 / 60)
 					+ " minutes";
 			double diff = logLikelihood - oldLogLikelihood;
 			System.out.println("Itr " + ++iterCount + " LL = " + logLikelihood
 					+ " \tdiff = " + diff
 					+ "\t time " + time);
 			sanityCheck();
-			if(diff / oldLogLikelihood < 0.01) {
+			if(Math.abs(diff / oldLogLikelihood) < 1E-6) {
 				smallCount ++;
 			} else {
 				smallCount = 0;
 			}
-			if(smallCount == 3) break;
+			if(smallCount == 3) {
+				System.out.println("diff ratio : " + (-diff/oldLogLikelihood));
+				System.out.println("Exiting because LL has converged");
+				break;
+			}
 		}
 	}
 
@@ -348,11 +358,13 @@ public class NBayes {
 	}
 
 	public void save() throws FileNotFoundException {
-		File file = new File(base);
+		File file = new File(modelFolder);
 		if (!file.exists()) {
 			boolean success = file.mkdirs();
-			if (!success) {
+			if (success) {
 				System.out.println("Model output folder created.");
+			} else {
+				System.out.println("Error creating model output folder.");
 			}
 		}
 		while(!file.isDirectory()) {
@@ -361,13 +373,13 @@ public class NBayes {
 			BufferedReader br = new BufferedReader(new InputStreamReader(
 					System.in));
 			try {
-				base = br.readLine();
+				modelFolder = br.readLine();
 			} catch (IOException ioe) {
 				System.out.println("IO error trying to read the base path!");
 				System.exit(1);
 			}
 			
-			file = new File(base);
+			file = new File(modelFolder);
 			if(!file.exists()) {
 				boolean success = file.mkdirs();
 				if (!success) {
@@ -376,7 +388,7 @@ public class NBayes {
 			}
 		}
 		// dictionary
-		PrintWriter dictionaryWriter = new PrintWriter(base + "/dictionary.txt");
+		PrintWriter dictionaryWriter = new PrintWriter(modelFolder + "/dictionary.txt");
 		dictionaryWriter.println(V);
 		for (int v = 0; v < V; v++) {
 			dictionaryWriter.println(c.corpusVocab.indexToWord.get(v));
@@ -385,7 +397,7 @@ public class NBayes {
 		dictionaryWriter.close();
 
 		// prior
-		PrintWriter piWriter = new PrintWriter(base + "/pi.txt");
+		PrintWriter piWriter = new PrintWriter(modelFolder + "/pi.txt");
 		piWriter.println(K);
 		for (int k = 0; k < K; k++) {
 			piWriter.println(pi[k]);
@@ -394,7 +406,7 @@ public class NBayes {
 		piWriter.close();
 
 		// emission
-		PrintWriter emissionWriter = new PrintWriter(base + "/emission.txt");
+		PrintWriter emissionWriter = new PrintWriter(modelFolder + "/emission.txt");
 		emissionWriter.println(V);
 		for (int v = 0; v < V; v++) {
 			for (int k = 0; k < K; k++) {
@@ -406,7 +418,7 @@ public class NBayes {
 		
 		if(containsLabel) {
 			//labels
-			PrintWriter labelWriter = new PrintWriter(base + "/label.txt");
+			PrintWriter labelWriter = new PrintWriter(modelFolder + "/label.txt");
 			labelWriter.println(c.labelMap.size());
 			for(int i=0; i<c.labelIdToString.size(); i++) {
 				labelWriter.println(c.labelIdToString.get(i));
@@ -424,7 +436,7 @@ public class NBayes {
 		c.readVocabFromVocabFile(base + "/dictionary.txt");
 		*/		
 		System.out.println("\treading prior...");
-		BufferedReader brPi = new BufferedReader(new FileReader(base + "/pi.txt"));
+		BufferedReader brPi = new BufferedReader(new FileReader(modelFolder + "/pi.txt"));
 		String line = null;
 		line = brPi.readLine().trim();
 		K = Integer.parseInt(line);
@@ -439,7 +451,7 @@ public class NBayes {
 		}
 		brPi.close();
 		
-		BufferedReader brEmission = new BufferedReader(new FileReader(base + "/emission.txt"));
+		BufferedReader brEmission = new BufferedReader(new FileReader(modelFolder + "/emission.txt"));
 		line = brEmission.readLine().trim();
 		V = Integer.parseInt(line);
 		emission = new double[V][K];
@@ -462,7 +474,7 @@ public class NBayes {
 		/*
 		if(containsLabel) {
 			System.out.println("\treading labels...");
-			BufferedReader brLabel = new BufferedReader(new FileReader(base + "/label.txt"));
+			BufferedReader brLabel = new BufferedReader(new FileReader(modelFolder + "/label.txt"));
 			line = brLabel.readLine().trim();
 			c.labelIdToString = new ArrayList<String>();
 			while( (line = brLabel.readLine() ) != null) {
