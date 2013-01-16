@@ -12,12 +12,14 @@ import java.util.Map;
 import java.util.Random;
 
 public class Vocabulary {
-	private int index = 0;
+	private int featureThreshold = 50;
+	//index zero reserved for __OOV__ (low freq features)
+	private int index = 1;
 	public int vocabSize = -1;
+	public String UNKNOWN = "_UNKNOWN_";
 	public Map<String, Integer> wordToIndex = new HashMap<String, Integer>();
 	public ArrayList<String> indexToWord = new ArrayList<String>();
 	public Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
-	//public static Map<String, Integer> wordToFrequency = new HashMap<String, Integer>();
 	
 	private void addItem(String word) {
 		if(wordToIndex.containsKey(word)) {
@@ -32,10 +34,37 @@ public class Vocabulary {
 		}
 	}
 	
+	private void reduceVocab() {
+		Map<String, Integer> wordToIndexNew = new HashMap<String, Integer>();
+		ArrayList<String> indexToWordNew = new ArrayList<String>();
+		Map<Integer, Integer> indexToFrequencyNew = new HashMap<Integer, Integer>();
+		wordToIndexNew.put(UNKNOWN, 0);
+		indexToFrequencyNew.put(0, -1); //TODO: decide if this matters
+		indexToWordNew.add(UNKNOWN);
+		int featureIndex = 1;
+		for(int i=1; i<indexToWord.size(); i++) {
+			if(indexToFrequency.get(i) > featureThreshold) {
+				wordToIndexNew.put(indexToWord.get(i), featureIndex);
+				indexToWordNew.add(indexToWord.get(i));
+				indexToFrequencyNew.put(featureIndex, indexToFrequency.get(i));
+				featureIndex = featureIndex + 1;
+			}
+		}
+		indexToWord = null; indexToFrequency = null; wordToIndex = null;
+		indexToWord = indexToWordNew;
+		indexToFrequency = indexToFrequencyNew;
+		wordToIndex = wordToIndexNew;
+		vocabSize = wordToIndex.size();
+		System.out.println("New vocab size : " + vocabSize);
+		
+	}
+	
 	public void readVocabFromFile(Corpus c, String filename, boolean containsLabel) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line = null;
-		
+		wordToIndex.put(UNKNOWN, 0);
+		indexToFrequency.put(0, -1); //TODO: decide if this matters
+		indexToWord.add(UNKNOWN);
 		while( (line = br.readLine()) != null) {
 			line = line.trim();
 			if(! line.isEmpty()) {
@@ -52,7 +81,11 @@ public class Vocabulary {
 			}
 		}
 		vocabSize = wordToIndex.size();
-		System.out.println("Vocab Size: " + vocabSize);
+		System.out.println("Original Vocab Size: " + vocabSize);
+		if(featureThreshold > 0) {
+			System.out.println("Reducing vocab size with threshold : " + featureThreshold);
+			reduceVocab();
+		}
 		br.close();
 		
 	}
@@ -92,7 +125,9 @@ public class Vocabulary {
 		if(wordToIndex.containsKey(word)) {
 			return wordToIndex.get(word);
 		} else {
-			return -1;
+			//word not found in vocab
+			System.out.println(word + " not found in vocab");
+			return 0; //unknown id
 		}
 	}
 	

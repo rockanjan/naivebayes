@@ -44,8 +44,8 @@ public class Corpus {
 	}
 	
 	public void readTrain(String inFile, boolean containsLabel) throws IOException {
-		Vocabulary trainVocab = new Vocabulary();
-		trainVocab.readVocabFromFile(this, inFile, containsLabel);
+		//Vocabulary trainVocab = new Vocabulary();
+		//trainVocab.readVocabFromFile(this, inFile, containsLabel);
 		BufferedReader br = new BufferedReader(new FileReader(inFile));
 		String line = null;
 		int totalWords = 0;
@@ -57,7 +57,7 @@ public class Corpus {
 				totalWords += instance.words.length;
 			}
 		}
-		System.out.println("Train vocab size : " + trainVocab.vocabSize);
+		//System.out.println("Train vocab size : " + trainVocab.vocabSize);
 		System.out.println("Train Instances: " + trainInstanceList.size());
 		System.out.println("Train token count: " + totalWords);
 		br.close();
