@@ -114,6 +114,7 @@ public class Vocabulary {
 				System.out.println("Chisquare value = " + chiSquare);
 			}
 			if(chiSquare > CHI_SQUARE_TABLE[labelCount - 1][CHISQUARE_CRITICAL_INDEX]) {
+			//if(chiSquare > 0.05) {
 				return true;
 			} else {
 				return false;
@@ -234,7 +235,9 @@ public class Vocabulary {
 			return wordToIndex.get(word);
 		} else {
 			//word not found in vocab
-			System.out.println(word + " not found in vocab");
+			if(debug) {
+				System.out.println(word + " not found in vocab");
+			}
 			return 0; //unknown id
 		}
 	}

@@ -19,12 +19,12 @@ public class Main {
 	String vocabFile;
 	String testFile;
 	String outFolderPrefix;
-	boolean containsLabel = false;
+	boolean containsLabel = true;
 	
 	int numClass = 100; //not used if containsLabel = true;
 	
 	int vocabThreshold = 0;
-	boolean testChiSquare = false; //this will be automatically false in Corpus if containsLabel = false
+	boolean testChiSquare = true; //this will be automatically false in Corpus if containsLabel = false
 	
 	/*
 	String trainFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
