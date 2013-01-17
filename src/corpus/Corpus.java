@@ -18,10 +18,14 @@ public class Corpus {
 	public int labelIdCount;
 	public Map<String, Integer> labelMap;
 	public ArrayList<String> labelIdToString;
+	//label id to frequency
+	public Map<Integer, Integer> labelFrequency = new HashMap<Integer, Integer>();
+	
+	public Map<Integer, Map<Integer, Integer>> featureLabelFrequency = new HashMap<Integer, Map<Integer, Integer>>();
 	
 	public Vocabulary corpusVocab; 
 	
-	public Corpus(String delimiter) {
+	public Corpus(String delimiter, int vocabThreshold, boolean testChiSquare) {
 		this.delimiter = delimiter;
 	}
 	
@@ -65,6 +69,9 @@ public class Corpus {
 	
 	public void readVocab(String inFile, boolean containsLabel) throws IOException {
 		corpusVocab = new Vocabulary();
+		if(! containsLabel ) {
+			corpusVocab.testChiSquare = false;
+		}
 		if(containsLabel) {
 			labelIdCount = 0;
 			labelMap = new HashMap<String, Integer>();
@@ -89,9 +96,9 @@ public class Corpus {
 		*/
 	}
 	
-	public void readVocabFromVocabFile(String filename) {
+	public void readVocabFromDictionary(String filename) {
 		corpusVocab = new Vocabulary();
-		corpusVocab.readVocabFromVocabFile(filename);
+		corpusVocab.readVocabFromDictionary(filename);
 	}
 	
 	public void readLabels(String filename) throws IOException {
@@ -111,17 +118,49 @@ public class Corpus {
 	
 	public int getLabelMap(String label) {
 		if(labelMap.containsKey(label)) {
-			return labelMap.get(label);
+			int labelId = labelMap.get(label); 
+			labelFrequency.put(labelId, labelFrequency.get(labelId) + 1);
+			return labelId;
 		} else {
 			labelMap.put(label, labelIdCount);
+			labelFrequency.put(labelIdCount, 1);
 			labelIdToString.add(label);
 			return labelIdCount++;
 		}
 	}
 	
+	public void debug() {
+		StringBuffer sb = new StringBuffer();
+		sb.append("DEBUG: Corpus\n");
+		sb.append("=============\n");
+		sb.append("vocab size : " + corpusVocab.vocabSize);
+		sb.append("\nlabel size : " + labelMap.size());
+		sb.append("\nvocab frequency: \n");
+		for(int i=0; i<corpusVocab.vocabSize; i++) {
+			sb.append("\t" + corpusVocab.indexToWord.get(i) + " --> " + corpusVocab.indexToFrequency.get(i));
+			sb.append("\n");
+		}
+		sb.append("\nlabel frequency: \n");
+		for(int i=0; i<labelMap.size(); i++) {
+			sb.append("\t" + labelIdToString.get(i) + " --> " + labelFrequency.get(i));
+			sb.append("\n");
+		}
+		sb.append("\nvocab_label frequency: \n");
+		for(int i=1; i<corpusVocab.vocabSize; i++) {
+			for(int j=0; j<labelMap.size(); j++) {
+				sb.append("\t +" + corpusVocab.indexToWord.get(i) + "_" + labelIdToString.get(j) + " --> " +
+						featureLabelFrequency.get(i).get(j));
+				sb.append("\n");
+			}
+		}
+		System.out.println(sb.toString());
+	}
+	
 	public static void main(String[] args) throws IOException {
-		String inFile = "/home/anjan/workspace/SRL-anjan/myconll2005/final/nbayes/combined.final.propprocessed.span";
-		Corpus c = new Corpus("\\+");
-		c.readVocab(inFile, false);
+		String inFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
+		int vocabThreshold = 0;
+		boolean testChisquare = false;
+		Corpus c = new Corpus("\\,", vocabThreshold, testChisquare);
+		c.readVocab(inFile, true);
 	}
 }

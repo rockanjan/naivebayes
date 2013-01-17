@@ -20,7 +20,11 @@ public class Main {
 	String testFile;
 	String outFolderPrefix;
 	boolean containsLabel = false;
+	
 	int numClass = 100; //not used if containsLabel = true;
+	
+	int vocabThreshold = 0;
+	boolean testChiSquare = false; //this will be automatically false in Corpus if containsLabel = false
 	
 	/*
 	String trainFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
@@ -55,8 +59,8 @@ public class Main {
 	}
 	
 	public void continueTrain() throws IOException {
-		Corpus c = new Corpus(delimiter);
-		c.readVocabFromVocabFile(NBayes.base + "/" + outFolderPrefix + "/dictionary.txt");
+		Corpus c = new Corpus(delimiter, vocabThreshold, testChiSquare);
+		c.readVocabFromDictionary(NBayes.base + "/" + outFolderPrefix + "/dictionary.txt");
 		c.readTrain(trainFile, containsLabel);
 		c.readTest(testFile, containsLabel);
 		NBayes model;
@@ -79,7 +83,7 @@ public class Main {
 	}
 	
 	public void train() throws IOException {
-		Corpus c = new Corpus(delimiter);
+		Corpus c = new Corpus(delimiter, vocabThreshold, testChiSquare);
 		c.readVocab(vocabFile, containsLabel);
 		c.readTrain(trainFile, containsLabel);
 		c.readTest(testFile, containsLabel); 
@@ -104,11 +108,11 @@ public class Main {
 	}
 	
 	public void test() throws IOException {
-		Corpus c = new Corpus(delimiter);
+		Corpus c = new Corpus(delimiter, vocabThreshold, testChiSquare);
 		if(containsLabel) {
 			c.readLabels(NBayes.base + "/label.txt");
 		}
-		c.readVocabFromVocabFile(NBayes.base + "/dictionary.txt");
+		c.readVocabFromDictionary(NBayes.base + "/dictionary.txt");
 		c.readTest(testFile, containsLabel);
 		NBayes model;
 		if(containsLabel) {
