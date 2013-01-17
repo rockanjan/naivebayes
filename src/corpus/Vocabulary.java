@@ -13,7 +13,7 @@ import java.util.Random;
 
 public class Vocabulary {
 	boolean debug = false;
-	private int featureThreshold = 0;
+	public int featureThreshold = 0;
 	public boolean testChiSquare = true;
 	//index zero reserved for __OOV__ (low freq features)
 	private int index = 1;
@@ -23,7 +23,7 @@ public class Vocabulary {
 	public ArrayList<String> indexToWord = new ArrayList<String>();
 	public Map<Integer, Integer> indexToFrequency = new HashMap<Integer, Integer>();
 	
-	public int CHISQUARE_CRITICAL_INDEX = 1; //0 = 90%, 1 = 95%
+	public int CHISQUARE_CRITICAL_INDEX = 0; //0 = 90%, 1 = 95%
 	public double CHI_SQUARE_TABLE[][] = {
 			//p-values
 			//0.90      0.95       0.975      0.99      0.999

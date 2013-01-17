@@ -25,8 +25,13 @@ public class Corpus {
 	
 	public Vocabulary corpusVocab; 
 	
+	int vocabThreshold;
+	boolean testChiSquare;
+	
 	public Corpus(String delimiter, int vocabThreshold, boolean testChiSquare) {
 		this.delimiter = delimiter;
+		this.vocabThreshold = vocabThreshold;
+		this.testChiSquare = testChiSquare;
 	}
 	
 	public void readTest(String inFile, boolean containsLabel) throws IOException {
@@ -69,7 +74,10 @@ public class Corpus {
 	
 	public void readVocab(String inFile, boolean containsLabel) throws IOException {
 		corpusVocab = new Vocabulary();
+		corpusVocab.featureThreshold = vocabThreshold;
+		corpusVocab.testChiSquare = testChiSquare;
 		if(! containsLabel ) {
+			//force no testing of chisquare feature selection
 			corpusVocab.testChiSquare = false;
 		}
 		if(containsLabel) {

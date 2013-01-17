@@ -23,8 +23,8 @@ public class Main {
 	
 	int numClass = 100; //not used if containsLabel = true;
 	
-	int vocabThreshold = 0;
-	boolean testChiSquare = true; //this will be automatically false in Corpus if containsLabel = false
+	int vocabThreshold = 20;
+	boolean testChiSquare = false; //this will be automatically false in Corpus if containsLabel = false
 	
 	/*
 	String trainFile = "/home/anjan/workspace/naivebayes/data/weather.nominal.txt";
